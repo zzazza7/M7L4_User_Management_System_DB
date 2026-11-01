@@ -36,11 +36,31 @@ def test_add_new_user(setup_database, connection):
     user = cursor.fetchone()
     assert user, "Пользователь должен быть добавлен в базу данных."
 
-# Возможные варианты тестов:
-"""
-Тест добавления пользователя с существующим логином.
-Тест успешной аутентификации пользователя.
-Тест аутентификации несуществующего пользователя.
-Тест аутентификации пользователя с неправильным паролем.
-Тест отображения списка пользователей.
-"""
+def test_authenticate_user_successfully(setup_database):
+    """Пользователь с правильным паролем проходит аутентификацию."""
+    add_user('authuser', 'authuser@example.com', 'secure-password')
+
+    assert authenticate_user('authuser', 'secure-password') is True
+
+
+def test_authenticate_nonexistent_user(setup_database):
+    """Несуществующий пользователь не проходит аутентификацию."""
+    assert authenticate_user('missing-user', 'any-password') is False
+
+
+def test_authenticate_user_with_wrong_password(setup_database):
+    """Неправильный пароль не проходит аутентификацию."""
+    add_user('wrongpassuser', 'wrongpassuser@example.com', 'correct-password')
+
+    assert authenticate_user('wrongpassuser', 'incorrect-password') is False
+
+
+def test_display_users(setup_database, capsys):
+    """Отображение списка включает добавленного пользователя."""
+    add_user('displayuser', 'displayuser@example.com', 'password123')
+
+    result = display_users()
+    output = capsys.readouterr().out + str(result)
+
+    assert 'displayuser' in output
+    assert 'displayuser@example.com' in output
